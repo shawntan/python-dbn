@@ -1,84 +1,62 @@
 import numpy as np
 
 class rbm:
-	def __init__(self,visible,hidden,epsilon):
+	def __init__(self, visible, hidden, epsilon = 0.1):
 		self.epsilon = epsilon
-		self.weights = np.random.randn(visible,hidden)
-		self.visible_bias = np.random.randn(visible)
-		self.hidden_bias  = np.random.randn(hidden)
-		self.visible_state = np.random.randint(0,2,visible)
-		self.hidden_state  = np.random.randint(0,2,hidden)
-
-	def hidden_activation_probs(self):
-		return sigmoid(
-				np.dot(self.visible_state,self.weights) +
-				self.hidden_bias
-			)
-
-	def visible_activation_probs(self):
-		return sigmoid(
-				np.dot(self.weights,self.hidden_state) +
-				self.visible_bias
-			)
-
-	def sample_states(self,states,activations):
-		states[:] = activations > np.random.rand(states.shape[0])
+		self.weights = 0.1*np.random.randn(visible + 1,hidden + 1)
+		self.weights[0,:] = 0
+		self.weights[:,0] = 0
+		self.visible = visible
+		self.hidden  = hidden 
 	
-	def visible_hidden(self):
-		act_probs = self.hidden_activation_probs()
-		self.sample_states(self.hidden_state,act_probs)
+	def run_visible(self, data):
+		num_examples = data.shape[0]
+		hidden_states = np.ones((num_examples, self.hidden + 1))
+		data = np.insert(data, 0, 1, axis = 1)
+		hidden_activations = np.dot(data, self.weights)
+		hidden_probs = sigmoid(hidden_activations)
+		hidden_states[:,:] = hidden_probs > np.random.rand(num_examples, self.hidden + 1)
+		hidden_states = hidden_states[:,1:]
+		return hidden_states
+	def train(self, data, max_epochs = 100):
+		num_examples = data.shape[0]
+		data = np.insert(data,0,1,axis=1)
+		for epoch in range(max_epochs):
+			pos_hidden_activations = np.dot(data,self.weights)
+			pos_hidden_probs       = sigmoid(pos_hidden_activations)
+			pos_hidden_states = pos_hidden_probs > np.random.rand(num_examples,self.hidden + 1)
+			pos_associations = np.dot(data.T,pos_hidden_probs)
+
+			neg_visible_activations = np.dot(pos_hidden_states,self.weights.T)
+			neg_visible_probs       = sigmoid(neg_visible_activations)
+			neg_visible_probs[:,0]  = 1
+			neg_hidden_activations  = np.dot(neg_visible_probs,self.weights)
+			neg_hidden_probs        = sigmoid(neg_hidden_activations)
+			neg_associations = np.dot(neg_visible_probs.T, neg_hidden_probs)
+
+			self.weights += self.epsilon * ((pos_associations - neg_associations)/num_examples)
+
+			error = np.sum((data - neg_visible_probs) ** 2)
+			print "Epoch %d: error is %0.5f"%(epoch,error)
 	
-	def hidden_visible(self):
-		act_probs = self.visible_activation_probs()
-		self.sample_states(self.visible_state,act_probs)
-	
-	def delta_weight(self):
-		#print "Start:",self.visible_state
-		self.visible_hidden()
-		#print "Visible->Hidden"
-		#print "Visible: ",self.visible_state
-		#print "Hidden: ",self.hidden_state
-		positive = np.matrix(self.visible_state).T * np.matrix(self.hidden_state)
-		#print "Positive:"
-		self.hidden_visible()
-		#print positive
-		#print "Visible->Hidden"
-		#print "Visible: ",self.visible_state
-		#print "Hidden: ",self.hidden_state
-		negative = np.matrix(self.visible_state).T * np.matrix(self.hidden_state)
-		#print "Negative:"
-		#print negative
-		delta = self.epsilon*(positive-negative)
-		#print delta
-		return delta
-
-
-
-		
-
 def sigmoid(x):
 	return 1 / ( 1 + np.exp(-x) )
 
-r = rbm(5,3,0.01)
+r = rbm(6,2,0.1)
+
+training_data = np.array([	
+	[1,1,1,0,0,0],
+	[1,0,1,0,0,0],
+	[1,1,1,0,0,0],
+	[0,0,1,1,1,0],
+	[0,0,1,1,0,0],
+	[0,0,1,1,1,0]
+	])
+
+r.train(training_data,100000)
 print r.weights
-
-r.visible_state[:] = [ 0, 0, 1, 0, 1 ] 
-for _ in range(100):
-	r.weights += r.delta_weight()
-r.visible_state[:] = [ 0, 1, 0, 0, 1 ] 
-for _ in range(100):
-	r.weights += r.delta_weight()
-
-"""
-r = rbm(5,3)
-print r.visible_state
-shit = 5 * np.ones(5)
-print shit
-print shit * r.visible_state
-
-for i in range(100):
-	r.visible_hidden()
-	r.hidden_visible()
-	print r.visible_state
-"""
-
+for _ in range(10):
+	print r.run_visible(np.array([
+		[1,1,1,0,0,0],
+		[0,0,1,1,1,0]
+	]))
