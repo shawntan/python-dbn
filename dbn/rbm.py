@@ -3,18 +3,10 @@ import numpy as np
 def sigmoid(x):
 	return 1 / ( 1 + np.exp(-x) )
 
-def softmax(x):
-	exponentiate = np.exp(x)
-	return exponentiate/np.sum(x)
-
-def constrained_poisson(x):
-	mean = np.sum(x)*softmax(x)
-
-
-class rbm:
+class RBM(object):
 	def __init__(self, visible, hidden, epsilon = 0.1, act_fun_hidden = sigmoid, act_fun_visible = sigmoid):
 		self.epsilon = epsilon
-		self.weights = 0.1*np.random.randn(visible + 1,hidden + 1)
+		self.weights = 0.1 * np.random.randn(visible + 1,hidden + 1)
 		self.weights[0,:] = 0
 		self.weights[:,0] = 0
 
@@ -36,6 +28,7 @@ class rbm:
 		num_examples = data.shape[0]
 		data = np.insert(data,0,1,axis=1)
 		for epoch in range(max_epochs):
+
 			pos_hidden_activations = np.dot(data,self.weights)
 			pos_hidden_probs       = self.act_fun_hidden(pos_hidden_activations)
 			pos_hidden_states      = pos_hidden_probs > np.random.rand(num_examples,self.hidden + 1)
@@ -55,7 +48,7 @@ class rbm:
 
 
 if __name__ == "__main__":
-	r = rbm(6,2,0.1)
+	r = RBM(6,2,0.1)
 
 	training_data = np.array([	
 		[1,1,1,0,0,0],
