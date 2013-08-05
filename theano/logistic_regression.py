@@ -22,7 +22,7 @@ class LogisticRegression:
 		self.learning_rate = learning_rate
 		self.y_pred = T.argmax(self.p_y_given_x, axis=1)
 		self.predict = theano.function(
-				inputs = [self.x],
+				inputs  = [self.x],
 				outputs = self.y_pred)
 
 	def negative_log_likelihood(self,y):
