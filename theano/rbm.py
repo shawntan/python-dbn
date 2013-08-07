@@ -104,36 +104,36 @@ class RBM(object):
 		chain_end = nv_samples[-1]
 		cost = T.mean(self.free_energy(data)) - T.mean(self.free_energy(chain_end))
 		gparams = T.grad(cost,self.tunables,consider_constant=[chain_end])
-		updates = {
-				param: param - gparam * T.cast(self.lr,dtype=theano.config.floatX)
+		updates = [
+				(param, param - gparam * T.cast(self.lr,dtype=theano.config.floatX))
 		   		 for gparam,param in zip(gparams,self.tunables)
-		   }
+		   ]
 		monitoring_cost = self.reconstruction_cost(updates,nv_activation_scores[-1],data)
 
 		return monitoring_cost,updates
 
 	def fit(self,X):
 		print "Setting up cost and update functions..."
-		cost,updates    = self.cost_updates(X)
 		n_train_batches = int(math.ceil(X.shape[0]/float(self.batch_size)))
-		
+		x               = T.matrix('x')
+		cost,updates    = self.cost_updates(x)
 		print "Setting up shared training memory..."
 		train_x = theano.shared(np.asarray(X,dtype=theano.config.floatX),borrow=True)
-		index   = T.lscalar()
-		x       = T.matrix('x')
+		index   = T.lscalar('index')
 		
 		print "Compiling training function..."
 		train_rbm = theano.function(
-				[index],
-				cost,
+				inputs  = [index],
+				outputs = cost,
 				updates = updates,
-				givens  = {	x: train_x[index*self.batch_size:(index+1)*self.batch_size] }
+				givens  = {	x: train_x[index*self.batch_size:(index+1)*self.batch_size] },
+				#on_unused_input = 'warn'
 			)
 		
 		print "Done."
 		for epoch in xrange(self.training_epochs):
-			for batch_index in xrange(n_train_batches):
-				print "Error:",train_rbm(batch_index)
+			avg_error = sum( train_rbm(batch_index) for batch_index in xrange(n_train_batches) )/float(n_train_batches)
+			print "Error:", avg_error
 
 
 if __name__ == "__main__":
