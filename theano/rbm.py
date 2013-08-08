@@ -129,7 +129,6 @@ class RBM(object):
 				updates = updates,
 				givens  = {	x: train_x[index*self.batch_size:(index+1)*self.batch_size] }
 			)
-		
 		print "Done."
 		for epoch in xrange(self.training_epochs):
 			for batch_index in xrange(n_train_batches):
@@ -137,8 +136,7 @@ class RBM(object):
 
 
 if __name__ == "__main__":
-	r = RBM(visible=6,hidden=2,lr=0.1)
-
+	r = RBM(visible=6,hidden=2,lr=0.1,batch_size=2)
 	training_data = np.array([	
 		[1,1,1,0,0,0],
 		[1,0,1,0,0,0],
