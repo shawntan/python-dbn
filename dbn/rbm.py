@@ -24,11 +24,21 @@ class RBM(object):
 		hidden_states[:,:] = hidden_probs > np.random.rand(num_examples, self.hidden + 1)
 		hidden_states = hidden_states[:,1:]
 		return hidden_states
+	
+	def run_hidden(self, data):
+		num_examples = data.shape[0]
+		visible_states = np.ones((num_examples, self.visible+ 1))
+		data = np.insert(data, 0, 1, axis = 1)
+		visible_activations = np.dot(data,self.weights.T)
+		visible_probs = self.act_fun_visible(visible_activations)
+		visible_states[:,:] = visible_probs > np.random.rand(num_examples, self.visible+ 1)
+		visible_states = visible_states[:,1:]
+		return visible_states
+
 	def train(self, data, max_epochs = 100):
 		num_examples = data.shape[0]
 		data = np.insert(data,0,1,axis=1)
 		for epoch in range(max_epochs):
-
 			pos_hidden_activations = np.dot(data,self.weights)
 			pos_hidden_probs       = self.act_fun_hidden(pos_hidden_activations)
 			pos_hidden_states      = pos_hidden_probs > np.random.rand(num_examples,self.hidden + 1)

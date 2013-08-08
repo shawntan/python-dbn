@@ -1,7 +1,8 @@
-import numpy         as np
 import theano
 import theano.tensor as T
+import numpy         as np
 from theano.tensor.shared_randomstreams import RandomStreams
+
 import math
 class RBM(object):
 	def __init__(self, visible, hidden, lr = 0.1,batch_size=400,training_epochs=100000,
@@ -83,13 +84,11 @@ class RBM(object):
 		"""
 		Cross entropy
 		"""
-		return T.mean(
-				T.sum(
-						data * T.log(self.v_activation(nv_activation_scores)) +
+		return T.mean(T.sum(
+					data * T.log(self.v_activation(nv_activation_scores)) +
 						(1 - data) * T.log(1 - self.v_activation(nv_activation_scores)),
-					axis = 1
-				)
-			)
+				axis = 1))
+
 	def cost_updates(self,data,k=1):
 		ph_activation_scores, ph_activation_probs, ph_samples = self.sample_h_given_v(data)
 		chain_start = ph_samples
@@ -104,46 +103,79 @@ class RBM(object):
 		chain_end = nv_samples[-1]
 		cost = T.mean(self.free_energy(data)) - T.mean(self.free_energy(chain_end))
 		gparams = T.grad(cost,self.tunables,consider_constant=[chain_end])
-		updates = {
-				param: param - gparam * T.cast(self.lr,dtype=theano.config.floatX)
+		updates = [
+				(param, param - gparam * T.cast(self.lr,dtype=theano.config.floatX))
 		   		 for gparam,param in zip(gparams,self.tunables)
-		   }
+		   ]
 		monitoring_cost = self.reconstruction_cost(updates,nv_activation_scores[-1],data)
 
 		return monitoring_cost,updates
 
 	def fit(self,X):
+
 		print "Setting up cost and update functions..."
-		cost,updates    = self.cost_updates(X)
 		n_train_batches = int(math.ceil(X.shape[0]/float(self.batch_size)))
-		
+		x,rep,val       = T.matrix('x'), T.matrix('rep'), T.matrix('val')
+		cost,updates    = self.cost_updates(x)
+
 		print "Setting up shared training memory..."
 		train_x = theano.shared(np.asarray(X,dtype=theano.config.floatX),borrow=True)
-		index   = T.lscalar()
-		x       = T.matrix('x')
+		index   = T.lscalar('index')
 		
 		print "Compiling training function..."
 		train_rbm = theano.function(
-				[index],
-				cost,
+				inputs  = [index],
+				outputs = cost,
 				updates = updates,
-				givens  = {	x: train_x[index*self.batch_size:(index+1)*self.batch_size] }
+				givens  = {	x: train_x[index*self.batch_size:(index+1)*self.batch_size] },
 			)
+		compare_free_energy = theano.function(
+				inputs  = [],
+				outputs = T.mean(self.free_energy(val)) - T.mean(self.free_energy(rep)),
+				givens  = { rep: train_x[:(n_train_batches-1)*self.batch_size],
+							val: train_x[(n_train_batches-1)*self.batch_size:] }
+			)
+
 		print "Done."
+		total_error = 0
 		for epoch in xrange(self.training_epochs):
-			for batch_index in xrange(n_train_batches):
-				print "Error:",train_rbm(batch_index)
+			for batch_index in xrange(n_train_batches-1):
+				error = train_rbm(batch_index)
+				total_error += error
+			avg_error = total_error/float(n_train_batches-1)
+			if not epoch%100:
+				print "Cross-entropy Error:", avg_error
+				print "Energy difference:  ", compare_free_energy()
 
 
 if __name__ == "__main__":
-	r = RBM(visible=6,hidden=2,lr=0.1,batch_size=2)
+	r = RBM(visible=6,hidden=2,lr=0.1,batch_size=5)
+
 	training_data = np.array([	
 		[1,1,1,0,0,0],
 		[1,0,1,0,0,0],
 		[1,1,1,0,0,0],
 		[0,0,1,1,1,0],
 		[0,0,1,1,0,1],
-		[0,0,1,1,1,0]
+		[0,0,1,1,1,0],
+		[1,1,1,0,0,0],
+		[1,0,1,0,0,0],
+		[1,1,1,0,0,0],
+		[0,0,1,1,1,0],
+		[0,0,1,1,0,1],
+		[0,0,1,1,1,0],
+		[1,1,1,0,0,0],
+		[1,0,1,0,0,0],
+		[1,1,1,0,0,0],
+		[0,0,1,1,1,0],
+		[0,0,1,1,0,1],
+		[0,0,1,1,1,0],
+		[1,1,1,0,0,0],
+		[1,0,1,0,0,0],
+		[1,1,1,0,0,0],
+		[0,0,1,1,1,0],
+		[0,0,1,1,0,1],
+		[0,0,1,1,1,0],
 	])
 
 	r.fit(training_data)
