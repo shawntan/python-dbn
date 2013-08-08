@@ -31,8 +31,8 @@ class RBM(object):
 
 		self.h_activation = act_fun_hidden
 		self.v_activation = act_fun_visible
-		self.n_visible    = visible
-		self.n_hidden     = hidden
+		self.n_visible    = self.input  = visible
+		self.n_hidden     = self.output = hidden
 		self.momentum     = momentum
 		self.lr           = lr
 		self.batch_size   = batch_size
@@ -103,6 +103,9 @@ class RBM(object):
 				dtype = theano.config.floatX
 			)
 		return dot_product,v_activation,v_sample
+
+	def t_transform(self,v):
+		return self.h_activation(T.dot(v,self.W) + self.h_bias)
 
 	def gibbs_hvh(self,h_sample):
 		v_activation_score, v_activation_probs, v_sample = self.sample_v_given_h(h_sample)
@@ -188,7 +191,7 @@ class RBM(object):
 		compare_free_energy = theano.function(
 				inputs  = [],
 				outputs = T.abs_(T.mean(self.free_energy(val)) - T.mean(self.free_energy(rep))),
-				givens  = { rep: train_x, val: valid_x }
+				givens  = { rep: train_x[:validate_count], val: valid_x }
 			)
 		print "Done."
 
