@@ -5,20 +5,23 @@ from theano.tensor.shared_randomstreams import RandomStreams
 
 import math
 class RBM(object):
-	def __init__(self, visible, hidden, lr = 0.1,batch_size=400,training_epochs=100000,
+	def __init__(self, visible, hidden,
+				 lr = 0.1,batch_size=400,training_epochs=100000,
+				 momentum = 0.5,
 				 act_fun_hidden  = T.nnet.sigmoid,
 				 act_fun_visible = T.nnet.sigmoid):
 		self.h_activation = act_fun_hidden
 		self.v_activation = act_fun_visible
 		self.n_visible    = visible
 		self.n_hidden     = hidden
+		self.momentum     = momentum
 		self.lr           = lr
 		self.batch_size   = batch_size
 		self.training_epochs = training_epochs
-
 		self.theano_rng = RandomStreams(
 				np.random.RandomState(1234).randint(2**30)
 			)
+
 		self.W = theano.shared(
 				value = np.asarray(np.random.uniform(
 					low  = -4 * np.sqrt(6./(visible+hidden)),
@@ -28,15 +31,35 @@ class RBM(object):
 				),
 				name = 'W'
 			)
+		self.W_delta = theano.shared(
+				value = np.asarray(
+					np.zeros((visible,hidden)),
+					dtype = theano.config.floatX
+				),
+				name = 'W_delta'
+			)
+
 		self.h_bias = theano.shared(
 				value = np.zeros(hidden,dtype=theano.config.floatX),
-				name  = 'hbias'
+				name  = 'h_bias'
 			)
+		self.h_bias_delta = theano.shared(
+				value = np.zeros(hidden,dtype=theano.config.floatX),
+				name  = 'h_bias_delta'
+			)
+
 		self.v_bias = theano.shared(
 				value = np.zeros(visible,dtype=theano.config.floatX),
-				name  = 'vbias'
+				name  = 'v_bias'
 			)
-		self.tunables = [self.W,self.h_bias,self.v_bias]
+
+		self.v_bias_delta = theano.shared(
+				value = np.zeros(visible,dtype=theano.config.floatX),
+				name  = 'v_bias_delta'
+			)
+
+		self.tunables = [self.W,       self.h_bias,       self.v_bias]
+		self.deltas   = [self.W_delta, self.h_bias_delta, self.v_bias_delta]
 	
 	def sample_h_given_v(self,v_sample):
 		dot_product  = T.dot(v_sample,self.W) + self.h_bias
@@ -103,10 +126,17 @@ class RBM(object):
 		chain_end = nv_samples[-1]
 		cost = T.mean(self.free_energy(data)) - T.mean(self.free_energy(chain_end))
 		gparams = T.grad(cost,self.tunables,consider_constant=[chain_end])
+
+		lr    = T.cast(self.lr,dtype=theano.config.floatX)
+		alpha = T.cast(self.momentum,dtype=theano.config.floatX)
 		updates = [
-				(param, param - gparam * T.cast(self.lr,dtype=theano.config.floatX))
-		   		 for gparam,param in zip(gparams,self.tunables)
+				( param, param - ( alpha * prev_chg + gparam * lr ) )
+		   		for gparam,param,prev_chg in zip(gparams,self.tunables,self.deltas)
+		   ] + [
+				( prev_chg, alpha * prev_chg + gparam * lr )
+				for prev_chg,gparam in zip(self.deltas,gparams)
 		   ]
+
 		monitoring_cost = self.reconstruction_cost(updates,nv_activation_scores[-1],data)
 
 		return monitoring_cost,updates
@@ -129,13 +159,13 @@ class RBM(object):
 				updates = updates,
 				givens  = {	x: train_x[index*self.batch_size:(index+1)*self.batch_size] },
 			)
+
 		compare_free_energy = theano.function(
 				inputs  = [],
 				outputs = T.mean(self.free_energy(val)) - T.mean(self.free_energy(rep)),
 				givens  = { rep: train_x[:(n_train_batches-1)*self.batch_size],
 							val: train_x[(n_train_batches-1)*self.batch_size:] }
 			)
-
 		print "Done."
 		total_error = 0
 		for epoch in xrange(self.training_epochs):
