@@ -1,4 +1,4 @@
-import sys,re
+import sys,re,random
 import numpy as np
 from rbm import RBM
 from nltk.corpus   import stopwords,gazetteers,names
@@ -16,6 +16,7 @@ def preprocess(sentence):
 if __name__ == '__main__':
 	hidden_units = 200
 	names = [ preprocess(line.strip()) for line in open(sys.argv[1],'r') ]
+	random.shuffle(names)
 	word_counter = CountVectorizer(
 			tokenizer=wordpunct_tokenize,
 			stop_words=stopwords,
@@ -27,7 +28,7 @@ if __name__ == '__main__':
 	data = data.toarray()
 	print data.shape
 	_,vocab = data.shape
-	r = RBM(vocab,hidden_units,lr=0.1,batch_size=100)
+	r = RBM(vocab,hidden_units)
 	r.fit(data)
 	"""
 	visible = r.run_hidden(np.eye(hidden_units))
