@@ -1,22 +1,24 @@
 import theano
 import theano.tensor as T
 import numpy         as np
-
 class LogisticRegression:
 	def __init__(self,features,classes,learning_rate=0.1):
-		#self.x = T.fmatrix('x')
-		#self.y = T.lvector('y')
 		self.b = theano.shared(
 				value = np.zeros((classes,),dtype=theano.config.floatX),
-				name  = 'b'
 			)
 		self.W = theano.shared(
 				value = np.zeros((features,classes),dtype=theano.config.floatX),
-				name  = 'W'
 			)
 
-		self.x = T.matrix('x')
-		self.y = T.ivector('y')
+		self.x = T.matrix()
+		self.y = T.ivector()
+
+	def negative_log_likelihood(self,y):
+		return -T.mean(
+					T.log(self.p_y_given_x)[T.arange(y.shape[0]),y]
+				)
+
+	def train(self,training_data,batch_size):
 
 		self.p_y_given_x = T.nnet.softmax(T.dot(self.x,self.W) + self.b)
 		self.learning_rate = learning_rate
@@ -25,10 +27,7 @@ class LogisticRegression:
 				inputs  = [self.x],
 				outputs = self.y_pred)
 
-	def negative_log_likelihood(self,y):
-		return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]),y])
 
-	def train(self,training_data,batch_size):
 		data_x,data_y = training_data
 		train_x = theano.shared(np.asarray(data_x,dtype=theano.config.floatX),borrow=True)
 		train_y = theano.shared(np.asarray(data_y,dtype=theano.config.floatX),borrow=True)

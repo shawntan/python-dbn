@@ -198,7 +198,7 @@ class RBM(object):
 		max_epochs   = self.training_epochs
 		patience     = max_epochs/10 
 		patience_inc = 2
-		gap_thresh   = 0.995
+		gap_thresh   = 0.999
 		val_freq     = min(n_train_batches,patience/2)
 		epoch        = 0
 		curr_lr      = float(self.lr)
@@ -234,7 +234,10 @@ class RBM(object):
 			print
 			epoch += 1
 
-		for p,best in zip(self.tunables,best_params): p.set_value(best)
+		#for p,best_p in zip(self.tunables,best_params): p.set_value(best_p)
+		data = T.matrix('inputs')
+		self.transform = theano.function(inputs = [data],outputs = self.t_transform(data))
+
 
 
 if __name__ == "__main__":
