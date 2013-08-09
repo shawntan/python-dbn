@@ -7,9 +7,9 @@ from logistic_regression import LogisticRegression
 
 if __name__ == '__main__':
 	data = np.vstack(100*(np.eye(8),))
-	np.random.shuffle(data)
+	#np.random.shuffle(data)
 	print data
-	r = RBM(8,3,act_fun_visible=T.nnet.softmax,lambda_2 = 0.001,training_epochs=100000)
+	r = RBM(8,3,act_fun_visible=T.nnet.softmax,lambda_2 = 0,training_epochs=200000)
 	r.fit(data)
 
 	data = theano.shared(np.asarray(data,dtype=theano.config.floatX),borrow=True)
@@ -17,8 +17,7 @@ if __name__ == '__main__':
 	x = T.matrix('inp')
 	y = T.ivector('out')
 	b = r.v_bias
-	W = r.W.T 
-	print dir(W)
+	W = r.W.T
 	tunables = [b] +  r.tunables[:-1]
 
 	p_y_given_x = T.nnet.softmax(T.dot(r.t_transform(x),W) + b)
@@ -35,8 +34,7 @@ if __name__ == '__main__':
 	
 	data  = np.eye(8)
 	label = np.asarray(np.arange(8),dtype=np.int32)
-	for _ in xrange(100000):
-		print train_model(data,label)
+	for _ in xrange(100000): print train_model(data,label)
 	print np.around(r.transform(data))
 	identity = theano.function([x],p_y_given_x)
-	print np.around(identity(data))
+	print identity(data)
