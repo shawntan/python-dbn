@@ -39,9 +39,7 @@ class RBM(object):
 		self.validation   = validation
 		self.training_epochs = training_epochs
 		self.lambda_2     = lambda_2
-		self.theano_rng = RandomStreams(
-				np.random.RandomState(1234).randint(2**30)
-			)
+		self.theano_rng = RandomStreams(np.random.RandomState(1234).randint(2**30))
 
 		self.W = theano.shared(
 				value = np.asarray(
