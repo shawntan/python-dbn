@@ -1,6 +1,7 @@
 import sys,re,random
 import numpy as np
 from rbm import RBM
+from layer import *
 from nltk.corpus   import stopwords,gazetteers,names
 from nltk.tokenize import wordpunct_tokenize
 from sklearn.feature_extraction.text import CountVectorizer
@@ -28,7 +29,11 @@ if __name__ == '__main__':
 	data = data.toarray()
 	print data.shape
 	_,vocab = data.shape
-	r = RBM(vocab,hidden_units)
+	r = RBM(
+			Sigmoid(data.shape[1]),
+			Sigmoid(hidden_units),
+			lambda_2 = 0
+		)
 	r.fit(data)
 	"""
 	visible = r.run_hidden(np.eye(hidden_units))

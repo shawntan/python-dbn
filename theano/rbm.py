@@ -42,7 +42,7 @@ class RBM(object):
 		self.deltas   = [self.W_delta, self.h_bias_delta, self.v_bias_delta]
 
 	def t_transform(self,v):
-		return self.h_activation(T.dot(v,self.W) + self.h_bias)
+		return self.h.activation(T.dot(v,self.W) + self.h_bias)
 
 	def gibbs_hvh(self,h_sample):
 		v_activation_score, v_activation_probs, v_sample = \
