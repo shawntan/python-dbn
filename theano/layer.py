@@ -11,11 +11,22 @@ import utils,theano
 from theano.tensor.shared_randomstreams import RandomStreams
 
 theano_rng = utils.theano_rng
-class Sigmoid(object):
+class Linear(object):
 	def __init__(self,size):
 		self.size = size
-		self.activation = T.nnet.sigmoid
+	def activation_probability(self,W,bias,inputs):
+		activation_score = T.dot(inputs,W) + bias
+		return activation_score,activation_score
+	def sample(self,W,bias,inputs):
+		activation_score,activation_probs = \
+				self.activation_probability(W,bias,inputs)
+		return \
+			activation_score,\
+			activation_probs,\
+			activation_probs
 
+class Sigmoid(Linear):
+	activation = T.nnet.sigmoid
 	def activation_probability(self,W,bias,inputs):
 		activation_score = T.dot(inputs,W) + bias
 		activation_probs = self.activation(activation_score)
@@ -35,9 +46,7 @@ class Sigmoid(object):
 			)
 
 class Softmax(Sigmoid):
-	def __init__(self,size):
-		self.size = size
-		self.activation = T.nnet.softmax
+	activation = T.nnet.softmax
 	def sample(self,W,bias,inputs):
 		activation_score,activation_probs = \
 				self.activation_probability(W,bias,inputs)
