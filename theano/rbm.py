@@ -18,7 +18,7 @@ class RBM(object):
 	"""
 	def __init__(self, visible, hidden,
 				 lr = 0.1,       batch_size = 10,  max_epochs = 100000,
-				 momentum = 0.5, validation = 0.1, lambda_2 = 0.01):
+				 momentum = 0.5, validation = 0.1, lambda_2 = 0.0):
 
 		self.v          = visible 
 		self.h          = hidden
@@ -110,21 +110,9 @@ class RBM(object):
 
 		return monitoring_cost,updates
 
-	def prepare_functions(self,X):
-		print "Splitting validation and training set..."
-		training_count  = int(X.shape[0]*(1-self.validation))
-		validate_count  = X.shape[0] - training_count
-		n_train_batches = int(math.ceil(training_count/float(self.batch_size)))
-		print "Setting up shared training memory..."
-		train_x = theano.shared(np.asarray(X[:training_count],dtype=theano.config.floatX),borrow=True)
-		valid_x = theano.shared(np.asarray(X[training_count:],dtype=theano.config.floatX),borrow=True)
+	def prepare_functions(self,n_train_batches,train_x,valid_x):
 		index   = T.lscalar('index')
-		print "Total examples:", X.shape[0]
-		print "train examples:", training_count
-		print "valid examples:", validate_count 
-		print "batches:       ", n_train_batches
-		print "batch size:    ", self.batch_size
-		
+	
 		print "Compiling training function..."
 		x,rep,val,lr    = T.matrix('x'), T.matrix('rep'), T.matrix('val'), T.dscalar('lr')
 		cost,updates    = self.cost_updates(x,lr)
@@ -138,7 +126,7 @@ class RBM(object):
 		compare_free_energy = theano.function(
 				inputs  = [],
 				outputs = T.abs_(T.mean(self.free_energy(val)) - T.mean(self.free_energy(rep))),
-				givens  = { rep: train_x[:validate_count], val: valid_x }
+				givens  = { rep: train_x, val: valid_x }
 			)
 		print "Done."
 		return n_train_batches,train_rbm,compare_free_energy
@@ -189,7 +177,20 @@ class RBM(object):
 		self.transform = theano.function(inputs = [data],outputs = self.t_transform(data))
 	
 	def fit(self,X):
-		self.train(*self.prepare_functions(X))
+		print "Splitting validation and training set..."
+		training_count  = int(X.shape[0]*(1-self.validation))
+		validate_count  = X.shape[0] - training_count
+		n_train_batches = int(math.ceil(training_count/float(self.batch_size)))
+		print "Setting up shared training memory..."
+		train_x = theano.shared(np.asarray(X[:training_count],dtype=theano.config.floatX),borrow=True)
+		valid_x = theano.shared(np.asarray(X[training_count:],dtype=theano.config.floatX),borrow=True)
+		print "Total examples:", X.shape[0]
+		print "train examples:", training_count
+		print "valid examples:", validate_count 
+		print "batches:       ", n_train_batches
+		print "batch size:    ", self.batch_size
+	
+		self.train(*self.prepare_functions(n_train_batches,train_x,valid_x))
 
 
 
