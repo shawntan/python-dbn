@@ -4,9 +4,10 @@ import utils
 import theano.tensor as T
 import numpy         as np
 import utils         as U
+from base import BaseLayerPair
 
 
-class RBM(object):
+class RBM(BaseLayerPair):
 	"""
 	TODO:
 	- Adaptive learning
@@ -110,7 +111,7 @@ class RBM(object):
 
 		return monitoring_cost,updates
 
-	def prepare_functions(self,n_train_batches,train_x,valid_x):
+	def prepare_functions(self,n_train_batches,train_x,valid_x,train_y=None,valid_y=None):
 		index   = T.lscalar('index')
 	
 		print "Compiling training function..."
@@ -130,68 +131,6 @@ class RBM(object):
 			)
 		print "Done."
 		return n_train_batches,train_model,compare_free_energy
-
-
-	def train(self,n_train_batches,train_model,compare_free_energy):
-		max_epochs   = self.max_epochs
-		patience     = max_epochs/10 
-		patience_inc = 2
-		gap_thresh   = 0.999
-		val_freq     = min(n_train_batches,patience/2)
-		epoch        = 0
-		curr_lr      = float(self.lr)
-		best_energy_gap = np.inf
-		best_params = None
-		iter_no = 0
-
-		while (epoch < max_epochs) and (patience > iter_no):
-			total_error = 0
-			for batch_index in xrange(n_train_batches):
-				error = train_model(batch_index,curr_lr)
-				total_error += error
-				iter_no = epoch * n_train_batches + batch_index
-				
-				if epoch >= 1 and (iter_no + 1) % val_freq == 0:
-					val_energy_gap = compare_free_energy()
-					
-					if val_energy_gap < best_energy_gap * gap_thresh:
-						patience = max(patience, iter_no * patience_inc)
-						if best_params:
-							curr_lr = math.sqrt(curr_lr)
-						best_energy_gap = val_energy_gap
-						print "Saving parameters..."
-						best_params = [ p.get_value() for p in self.tunables ]
-						
-
-			avg_error = total_error/float(n_train_batches-1)
-
-			print "Cross-entropy Error:", avg_error
-			print "Energy difference:  ", compare_free_energy()
-			print "Patience:           ", patience
-			print "Iteration:          ", iter_no
-			print
-			epoch += 1
-
-		#for p,best_p in zip(self.tunables,best_params): p.set_value(best_p)
-		data = T.matrix('inputs')
-		self.transform = theano.function(inputs = [data],outputs = self.t_transform(data))
-	
-	def fit(self,X):
-		print "Splitting validation and training set..."
-		training_count  = int(X.shape[0]*(1-self.validation))
-		validate_count  = X.shape[0] - training_count
-		n_train_batches = int(math.ceil(training_count/float(self.batch_size)))
-		print "Setting up shared training memory..."
-		train_x = theano.shared(np.asarray(X[:training_count],dtype=theano.config.floatX),borrow=True)
-		valid_x = theano.shared(np.asarray(X[training_count:],dtype=theano.config.floatX),borrow=True)
-		print "Total examples:", X.shape[0]
-		print "train examples:", training_count
-		print "valid examples:", validate_count 
-		print "batches:       ", n_train_batches
-		print "batch size:    ", self.batch_size
-	
-		self.train(*self.prepare_functions(n_train_batches,train_x,valid_x))
-
 
 
 
