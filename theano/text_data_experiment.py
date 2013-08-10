@@ -1,6 +1,7 @@
 import sys,re,random
 import numpy as np
 from rbm import RBM
+from dbn import DBN
 from layer import *
 from nltk.corpus   import stopwords,gazetteers,names
 from nltk.tokenize import wordpunct_tokenize
@@ -33,6 +34,7 @@ if __name__ == '__main__':
 	n = DBN([ 
 			Sigmoid(data.shape[1]),
 			Sigmoid(hidden_units),
+			Sigmoid(hidden_units/2)
 		])
 	n.fit(data,None)
 	"""
