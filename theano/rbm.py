@@ -114,7 +114,7 @@ class RBM(object):
 		index   = T.lscalar('index')
 	
 		print "Compiling training function..."
-		x,rep,val,lr    = T.matrix('x'), T.matrix('rep'), T.matrix('val'), T.dscalar('lr')
+		x,rep,val,lr    = T.matrix('x'), T.matrix('rep'), T.matrix('val'), T.scalar('lr')
 		cost,updates    = self.cost_updates(x,lr)
 		train_rbm = theano.function(
 				inputs  = [index,lr],
