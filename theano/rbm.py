@@ -110,21 +110,9 @@ class RBM(object):
 
 		return monitoring_cost,updates
 
-	def prepare_functions(self,X):
-		print "Splitting validation and training set..."
-		training_count  = int(X.shape[0]*(1-self.validation))
-		validate_count  = X.shape[0] - training_count
-		n_train_batches = int(math.ceil(training_count/float(self.batch_size)))
-		print "Setting up shared training memory..."
-		train_x = theano.shared(np.asarray(X[:training_count],dtype=theano.config.floatX),borrow=True)
-		valid_x = theano.shared(np.asarray(X[training_count:],dtype=theano.config.floatX),borrow=True)
+	def prepare_functions(self,train_x,valid_x):
 		index   = T.lscalar('index')
-		print "Total examples:", X.shape[0]
-		print "train examples:", training_count
-		print "valid examples:", validate_count 
-		print "batches:       ", n_train_batches
-		print "batch size:    ", self.batch_size
-		
+	
 		print "Compiling training function..."
 		x,rep,val,lr    = T.matrix('x'), T.matrix('rep'), T.matrix('val'), T.dscalar('lr')
 		cost,updates    = self.cost_updates(x,lr)
@@ -189,7 +177,20 @@ class RBM(object):
 		self.transform = theano.function(inputs = [data],outputs = self.t_transform(data))
 	
 	def fit(self,X):
-		self.train(*self.prepare_functions(X))
+		print "Splitting validation and training set..."
+		training_count  = int(X.shape[0]*(1-self.validation))
+		validate_count  = X.shape[0] - training_count
+		n_train_batches = int(math.ceil(training_count/float(self.batch_size)))
+		print "Setting up shared training memory..."
+		train_x = theano.shared(np.asarray(X[:training_count],dtype=theano.config.floatX),borrow=True)
+		valid_x = theano.shared(np.asarray(X[training_count:],dtype=theano.config.floatX),borrow=True)
+		print "Total examples:", X.shape[0]
+		print "train examples:", training_count
+		print "valid examples:", validate_count 
+		print "batches:       ", n_train_batches
+		print "batch size:    ", self.batch_size
+	
+		self.train(*self.prepare_functions(train_x,valid_x))
 
 
 
