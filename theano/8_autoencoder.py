@@ -4,12 +4,12 @@ from rbm import RBM
 import theano.tensor as T
 import theano
 from logistic_regression import LogisticRegression
-
+from layer import *
 if __name__ == '__main__':
 	data = np.vstack(100*(np.eye(8),))
 	#np.random.shuffle(data)
 	print data
-	r = RBM(8,3,act_fun_visible=T.nnet.softmax,lambda_2 = 0,training_epochs=200000)
+	r = RBM(OneHotSoftmax(8),Sigmoid(3),lambda_2=0)
 	r.fit(data)
 
 	data = theano.shared(np.asarray(data,dtype=theano.config.floatX),borrow=True)

@@ -54,7 +54,6 @@ class OneHotSoftmax(Softmax):
 			activation_score,\
 			activation_probs,\
 			theano_rng.multinomial(
-				size  = activation_probs.shape,
 				n     = 1,
 				pvals = activation_probs,
 				dtype = theano.config.floatX
