@@ -78,7 +78,7 @@ class RBM(object):
 	def regularisation(self):
 		return self.lambda_2 * sum( T.sum(p**2) for p in self.tunables )
 
-	def cost_updates(self,data,lr,k=1):
+	def cost_updates(self,lr,data,k=1):
 		ph_activation_scores, ph_activation_probs, ph_samples = \
 				self.h.sample(self.W,self.h_bias,data)
 		chain_start = ph_samples
@@ -115,8 +115,8 @@ class RBM(object):
 	
 		print "Compiling training function..."
 		x,rep,val,lr    = T.matrix('x'), T.matrix('rep'), T.matrix('val'), T.scalar('lr')
-		cost,updates    = self.cost_updates(x,lr)
-		train_rbm = theano.function(
+		cost,updates    = self.cost_updates(lr,x)
+		train_model = theano.function(
 				inputs  = [index,lr],
 				outputs = cost,
 				updates = updates,
@@ -129,10 +129,10 @@ class RBM(object):
 				givens  = { rep: train_x, val: valid_x }
 			)
 		print "Done."
-		return n_train_batches,train_rbm,compare_free_energy
+		return n_train_batches,train_model,compare_free_energy
 
 
-	def train(self,n_train_batches,train_rbm,compare_free_energy):
+	def train(self,n_train_batches,train_model,compare_free_energy):
 		max_epochs   = self.max_epochs
 		patience     = max_epochs/10 
 		patience_inc = 2
@@ -147,7 +147,7 @@ class RBM(object):
 		while (epoch < max_epochs) and (patience > iter_no):
 			total_error = 0
 			for batch_index in xrange(n_train_batches):
-				error = train_rbm(batch_index,curr_lr)
+				error = train_model(batch_index,curr_lr)
 				total_error += error
 				iter_no = epoch * n_train_batches + batch_index
 				
