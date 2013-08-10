@@ -110,7 +110,7 @@ class RBM(object):
 
 		return monitoring_cost,updates
 
-	def fit(self,X):
+	def prepare_functions(self,X):
 		print "Splitting validation and training set..."
 		training_count  = int(X.shape[0]*(1-self.validation))
 		validate_count  = X.shape[0] - training_count
@@ -141,7 +141,10 @@ class RBM(object):
 				givens  = { rep: train_x[:validate_count], val: valid_x }
 			)
 		print "Done."
+		return n_train_batches,train_rbm,compare_free_energy
 
+
+	def train(self,n_train_batches,train_rbm,compare_free_energy):
 		max_epochs   = self.max_epochs
 		patience     = max_epochs/10 
 		patience_inc = 2
@@ -184,6 +187,10 @@ class RBM(object):
 		#for p,best_p in zip(self.tunables,best_params): p.set_value(best_p)
 		data = T.matrix('inputs')
 		self.transform = theano.function(inputs = [data],outputs = self.t_transform(data))
+	
+	def fit(self,X):
+		self.train(*self.prepare_functions(X))
+
 
 
 

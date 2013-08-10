@@ -29,12 +29,12 @@ if __name__ == '__main__':
 	data = data.toarray()
 	print data.shape
 	_,vocab = data.shape
-	r = RBM(
+
+	n = DBN([ 
 			Sigmoid(data.shape[1]),
 			Sigmoid(hidden_units),
-			lambda_2 = 0
-		)
-	r.fit(data)
+		])
+	n.fit(data,None)
 	"""
 	visible = r.run_hidden(np.eye(hidden_units))
 	out = open('assoc_words','w')
