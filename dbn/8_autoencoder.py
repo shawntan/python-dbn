@@ -1,10 +1,9 @@
 import sys,re,random
 import numpy as np
 from dbn import DBN 
-from layer import *
+from layers import *
 import theano.tensor as T
 import theano
-from layer import *
 if __name__ == '__main__':
 	data = np.hstack((np.eye(8),np.arange(8).reshape((8,1))))
 	data = np.vstack(100*(data,))

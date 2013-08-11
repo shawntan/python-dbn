@@ -2,7 +2,7 @@ import sys,re,random
 import numpy as np
 from rbm import RBM
 from dbn import DBN
-from layer import *
+from layers import *
 from nltk.corpus   import stopwords,gazetteers,names
 from nltk.tokenize import wordpunct_tokenize
 from sklearn.feature_extraction.text import CountVectorizer
