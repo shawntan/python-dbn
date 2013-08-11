@@ -19,16 +19,15 @@ net.predict(test_data)
 ```
 
 ###There's a still a lot left to do
+- **Persistence of learnt weights**
+  Of highest importance
 - **Multiple visible layer sets per RBM**
-
   Multiple types of input for each RBM. Hopefully this will make
   experimenting different ways for data input to the network possible.
 - **Auto-encoders**
-
   Building on to the DBN class to create an intuitive way to
   build auto-encoders just by specifying the layer dimensions.
 - **Documentation**
-  
   I'd like the library to be as thoroughly documented as scikit-learn.
   I've learnt a ton from that library, largely because the documentation
   of the library is so complete, going right down to the theory level of
