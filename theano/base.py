@@ -6,9 +6,11 @@ import math
 class BaseLayerPair(object):
 	def __init__(self,inputs,outputs,
 				 lr = 0.1,       batch_size = 10,  max_epochs = 100000,
-				 momentum = 0.5, validation = 0.1, lambda_2 = 0.001):
+				 momentum = 0.5, validation = 0.1, lambda_2 = 0.001,
+				 min_lr = 1e-5):
 		self.momentum   = momentum
 		self.lr         = lr
+		self.min_lr     = min_lr
 		self.batch_size = batch_size
 		self.validation = validation
 		self.max_epochs = max_epochs 
@@ -54,7 +56,10 @@ class BaseLayerPair(object):
 		gap_thresh   = 0.999
 		val_freq     = min(n_train_batches,patience/2)
 		epoch        = 0
-		curr_lr      = float(self.lr)
+
+		lr_denom     = float(1/self.min_lr)
+		lr_numer     = float(self.lr/self.min_lr)
+		curr_lr      = lr_numer / lr_denom
 		best_error   = np.inf
 		best_params  = None
 		iter_no = 0
@@ -71,7 +76,8 @@ class BaseLayerPair(object):
 					if val_error < best_error * gap_thresh:
 						patience = max(patience, iter_no * patience_inc)
 						if best_params:
-							curr_lr = math.sqrt(curr_lr)
+							lr_numer = math.sqrt(lr_numer)
+							curr_lr  = lr_numer / lr_denom
 						best_error = val_error 
 						print "Saving parameters..."
 						best_params = [ p.get_value() for p in self.tunables ]
