@@ -60,7 +60,6 @@ class BaseLayerPair(object):
 		lr_denom     = float(1/self.min_lr)
 		lr_numer     = float(self.lr/self.min_lr)
 		curr_lr      = lr_numer / lr_denom
-
 		best_error   = np.inf
 		best_params  = None
 		iter_no = 0
