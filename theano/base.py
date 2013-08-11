@@ -7,10 +7,10 @@ class BaseLayerPair(object):
 	def __init__(self,inputs,outputs,
 				 lr = 0.1,       batch_size = 10,  max_epochs = 100000,
 				 momentum = 0.5, validation = 0.1, lambda_2 = 0.001,
-				 min_lr = 1e-5):
+				 lr_min = 1e-5):
 		self.momentum   = momentum
 		self.lr         = lr
-		self.min_lr     = min_lr
+		self.lr_min     = lr_min
 		self.batch_size = batch_size
 		self.validation = validation
 		self.max_epochs = max_epochs 
@@ -57,8 +57,8 @@ class BaseLayerPair(object):
 		val_freq     = min(n_train_batches,patience/2)
 		epoch        = 0
 
-		lr_denom     = float(1/self.min_lr)
-		lr_numer     = float(self.lr/self.min_lr)
+		lr_denom     = float(1/self.lr_min)
+		lr_numer     = float(self.lr/self.lr_min)
 		curr_lr      = lr_numer / lr_denom
 		best_error   = np.inf
 		best_params  = None
@@ -91,5 +91,5 @@ class BaseLayerPair(object):
 			print
 			epoch += 1
 		
-		for p,best_p in zip(self.tunables,best_params): p.set_value(best_p)
+		#for p,best_p in zip(self.tunables,best_params): p.set_value(best_p)
 

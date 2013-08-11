@@ -8,7 +8,8 @@ from base import BaseLayerPair
 
 
 class RBM(BaseLayerPair):
-	def __init__(self, visible, hidden,**kwargs):
+	def __init__(self, visible, hidden, **kwargs):
+		kwargs['lambda_2'] = 0.0
 		self.v = visible
 		self.h = hidden
 		inputs = self.v.size
