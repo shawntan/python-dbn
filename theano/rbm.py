@@ -19,7 +19,8 @@ class RBM(BaseLayerPair):
 		super(RBM,self).__init__(
 				inputs,outputs,
 				lr,batch_size,max_epochs,
-				momentum,validation,lambda_2)
+				momentum,validation,lambda_2
+			)
 		self.h_bias       = self.bias
 		self.h_bias_delta = self.bias_delta
 
