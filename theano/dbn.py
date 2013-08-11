@@ -10,7 +10,7 @@ class DBN(object):
 			validation = 0.1,batch_size = 10):
 		self.layers = layers
 		self.rbms = [
-				RBM(layers[i],layers[i+1])
+				RBM(layers[i],layers[i+1],lr=0.01,lr_min=1e-8)
 				for i in xrange(len(layers)-1)
 			]
 		self.validation = validation

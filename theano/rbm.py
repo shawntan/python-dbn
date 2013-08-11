@@ -8,18 +8,13 @@ from base import BaseLayerPair
 
 
 class RBM(BaseLayerPair):
-	def __init__(self, visible, hidden,
-				 lr = 0.1,       batch_size = 10,  max_epochs = 100000,
-				 momentum = 0.5, validation = 0.1, lambda_2 = 0.0):
+	def __init__(self, visible, hidden,**kwargs):
 		self.v = visible
 		self.h = hidden
 		inputs = self.v.size
 		outputs = self.h.size
 		
-		super(RBM,self).__init__(
-				inputs,outputs,
-				lr,batch_size,max_epochs,
-				momentum,validation,lambda_2)
+		super(RBM,self).__init__(inputs,outputs,**kwargs)
 		self.h_bias       = self.bias
 		self.h_bias_delta = self.bias_delta
 
