@@ -8,39 +8,26 @@ from base import BaseLayerPair
 
 
 class RBM(BaseLayerPair):
-	"""
-	TODO:
-	- Adaptive learning
-	- PCD
-	- Sparsity
-	- Regularisation
-		- L1 & L2
-	- Early-stopping
-	"""
 	def __init__(self, visible, hidden,
 				 lr = 0.1,       batch_size = 10,  max_epochs = 100000,
 				 momentum = 0.5, validation = 0.1, lambda_2 = 0.0):
-
-		self.v          = visible 
-		self.h          = hidden
-		self.momentum   = momentum
-		self.lr         = lr
-		self.batch_size = batch_size
-		self.validation = validation
-		self.max_epochs = max_epochs 
-		self.lambda_2   = lambda_2
-
-		self.W       = U.create_shared(U.initial_weights(self.v.size,self.h.size))
-		self.W_delta = U.create_shared(np.zeros((self.v.size,self.h.size)))
+		self.v = visible
+		self.h = hidden
+		inputs = self.v.size
+		outputs = self.h.size
+		
+		super(RBM,self).__init__(
+				inputs,outputs,
+				lr,batch_size,max_epochs,
+				momentum,validation,lambda_2)
+		self.h_bias       = self.bias
+		self.h_bias_delta = self.bias_delta
 
 		self.v_bias       = U.create_shared(np.zeros(self.v.size))
 		self.v_bias_delta = U.create_shared(np.zeros(self.v.size))
 
-		self.h_bias       = U.create_shared(np.zeros(self.h.size))
-		self.h_bias_delta = U.create_shared(np.zeros(self.h.size))
-
-		self.tunables = [self.W,       self.h_bias,       self.v_bias]
-		self.deltas   = [self.W_delta, self.h_bias_delta, self.v_bias_delta]
+		self.tunables += [self.v_bias]
+		self.deltas   += [self.v_bias_delta]
 
 	def t_transform(self,v):
 		return self.h.activation(T.dot(v,self.W) + self.h_bias)

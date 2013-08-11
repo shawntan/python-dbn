@@ -5,24 +5,6 @@ import utils         as U
 from base import BaseLayerPair
 
 class LogisticRegression(BaseLayerPair):
-	def __init__(self,features,classes,
-				 lr = 0.1,       batch_size = 10,  max_epochs = 100000,
-				 momentum = 0.5, validation = 0.1, lambda_2 = 0.001):
-		self.momentum   = momentum
-		self.lr         = lr
-		self.batch_size = batch_size
-		self.validation = validation
-		self.max_epochs = max_epochs 
-		self.lambda_2   = lambda_2
-
-		self.W       = U.create_shared(U.initial_weights(features,classes))
-		self.W_delta = U.create_shared(np.zeros((features,classes)))
-
-		self.bias       = U.create_shared(np.zeros(features))
-		self.bias_delta = U.create_shared(np.zeros(features))
-
-		self.tunables = [self.W,       self.bias]
-		self.deltas   = [self.W_delta, self.bias_delta]
 
 	def activation_probability(self,x):
 		return T.nnet.softmax(T.dot(x,self.W) + self.bias)

@@ -4,7 +4,26 @@ import theano.tensor as T
 import math
 
 class BaseLayerPair(object):
-	
+	def __init__(self,inputs,outputs,
+				 lr = 0.1,       batch_size = 10,  max_epochs = 100000,
+				 momentum = 0.5, validation = 0.1, lambda_2 = 0.001):
+		self.momentum   = momentum
+		self.lr         = lr
+		self.batch_size = batch_size
+		self.validation = validation
+		self.max_epochs = max_epochs 
+		self.lambda_2   = lambda_2
+
+		self.W       = U.create_shared(U.initial_weights(inputs,outputs))
+		self.W_delta = U.create_shared(np.zeros((inputs,outputs)))
+
+		self.bias       = U.create_shared(np.zeros(outputs))
+		self.bias_delta = U.create_shared(np.zeros(outputs))
+
+		self.tunables = [self.W,       self.bias]
+		self.deltas   = [self.W_delta, self.bias_delta]
+
+
 	def fit(self,X,Y=None):
 		print "Splitting validation and training set..."
 		training_count  = int(X.shape[0]*(1-self.validation))
