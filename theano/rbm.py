@@ -25,6 +25,7 @@ class RBM(BaseLayerPair):
 		self.tunables += [self.v_bias]
 		self.deltas   += [self.v_bias_delta]
 
+
 	def t_transform(self,v):
 		return self.h.activation(T.dot(v,self.W) + self.h_bias)
 

@@ -21,10 +21,10 @@ class LogisticRegression(BaseLayerPair):
 		updates = [
 				( param, param - ( alpha * prev_chg + gparam * lr ) )
 		   		for param,gparam,prev_chg in zip(self.tunables,gparams,self.deltas)
-		   ] + [
+			] + [
 				( prev_chg, alpha * prev_chg + gparam * lr )
 				for prev_chg,gparam in zip(self.deltas,gparams)
-		   ]
+			]
 		return cost,updates
 
 	def error(self,x,y):

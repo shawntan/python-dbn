@@ -12,11 +12,12 @@ def initial_weights(visible,hidden):
 	"""
 	return 0.1 * np.random.randn(visible,hidden)
 
-def create_shared(array, dtype=theano.config.floatX):
+def create_shared(array, dtype=theano.config.floatX, name=None):
 	return theano.shared(
 			value = np.asarray(
 				array,
 				dtype = dtype
-			)
+			),
+			name = name
 		)
 

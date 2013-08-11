@@ -7,7 +7,7 @@ class BaseLayerPair(object):
 	def __init__(self,inputs,outputs,
 				 lr = 0.1,       batch_size = 10,  max_epochs = 100000,
 				 momentum = 0.5, validation = 0.1, lambda_2 = 0.001,
-				 lr_min = 1e-5):
+				 lr_min = 0.1):
 		self.momentum   = momentum
 		self.lr         = lr
 		self.lr_min     = lr_min
@@ -24,7 +24,6 @@ class BaseLayerPair(object):
 
 		self.tunables = [self.W,       self.bias]
 		self.deltas   = [self.W_delta, self.bias_delta]
-
 
 	def fit(self,X,Y=None):
 		print "Splitting validation and training set..."
@@ -91,5 +90,5 @@ class BaseLayerPair(object):
 			print
 			epoch += 1
 		
-		#for p,best_p in zip(self.tunables,best_params): p.set_value(best_p)
+		for p,best_p in zip(self.tunables,best_params): p.set_value(best_p)
 
