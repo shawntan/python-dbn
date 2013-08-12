@@ -67,4 +67,7 @@ class OneHotSoftmax(Softmax):
 				pvals = activation_probs,
 				dtype = theano.config.floatX
 			)
-	
+
+
+
+
