@@ -1,7 +1,7 @@
 import sys,re,random
 import numpy as np
-from dbn import DBN 
-from layers import *
+from dbn        import DBN 
+from dbn.layers import *
 import theano.tensor as T
 import theano
 if __name__ == '__main__':

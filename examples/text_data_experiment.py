@@ -1,6 +1,5 @@
 import sys,re,random
 import numpy as np
-from rbm import RBM
 from dbn import DBN
 from layers import *
 from nltk.corpus   import stopwords,gazetteers,names
