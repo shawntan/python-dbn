@@ -30,22 +30,26 @@ class RBM(BaseLayerPair):
 		return self.h.activation(T.dot(v,self.W) + self.h_bias)
 
 	def gibbs_hvh(self,h_sample):
-		v_activation_score, v_activation_probs, v_sample = \
-				self.v.sample(self.W.T,self.v_bias,h_sample)
-		h_activation_score, h_activation_probs, h_sample = \
-				self.h.sample(self.W,self.h_bias,v_sample)
+		v_activation_score = T.dot(h_sample,self.W.T) + self.v_bias
+		v_activation_probs, v_sample = self.v.sample(v_activation_score)
+		h_activation_score = T.dot(v_sample,self.W)   + self.h_bias
+		h_activation_probs, h_sample = self.h.sample(h_activation_score)
 		return v_activation_score,v_activation_probs,v_sample,\
 			   h_activation_score,h_activation_probs,h_sample
 
 	def gibbs_vhv(self,v_sample):
-		h_activation_score, h_activation_probs, h_sample = \
-				self.h.sample(self.W,self.h_bias,v_sample)
-		v_activation_score, v_activation_probs, v_sample = \
-				self.v.sample(self.W.T,self.v_bias,h_sample)
-		return v_activation_score,v_activation_probs,v_sample,\
-			   h_activation_score,h_activation_probs,h_sample
+		h_activation_score = T.dot(v_sample,self.W)   + self.h_bias
+		h_activation_probs, h_sample = self.h.sample(h_activation_score)
+		v_activation_score = T.dot(h_sample,self.W.T) + self.v_bias
+		v_activation_probs, v_sample = self.v.sample(v_activation_score)
+		return h_activation_score,h_activation_probs,h_sample,\
+			   v_activation_score,v_activation_probs,v_sample
+
 
 	def free_energy(self, v_sample):
+		"""
+		this is only for binary units!
+		"""
 		h_activation_score = T.dot(v_sample,self.W) + self.h_bias
 		v_bias_term = T.dot(v_sample,self.v_bias)
 		hidden_term = T.sum(T.log(1 + T.exp(h_activation_score)), axis=1)
@@ -64,8 +68,8 @@ class RBM(BaseLayerPair):
 		return self.lambda_2 * sum( T.sum(p**2) for p in self.tunables )
 
 	def cost_updates(self,lr,data,k=1):
-		ph_activation_scores, ph_activation_probs, ph_samples = \
-				self.h.sample(self.W,self.h_bias,data)
+		ph_activation_scores = T.dot(data,self.W) + self.h_bias
+		ph_activation_probs, ph_samples = self.h.sample(ph_activation_scores)
 		chain_start = ph_samples
 
 		[nv_activation_scores,nv_activation_probs,nv_samples,\
@@ -73,7 +77,7 @@ class RBM(BaseLayerPair):
 		theano.scan(
 				 self.gibbs_hvh,
 				 outputs_info = [None,None,None,None,None,chain_start],
-				 n_steps      = 1
+				 n_steps      = k
 			)
 		chain_end = nv_samples[-1]
 		cost = T.mean(self.free_energy(data))\
