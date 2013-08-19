@@ -45,7 +45,6 @@ class RBM(BaseLayerPair):
 		return h_activation_score,h_activation_probs,h_sample,\
 			   v_activation_score,v_activation_probs,v_sample
 
-
 	def free_energy(self, v_sample):
 		"""
 		this is only for binary units!
