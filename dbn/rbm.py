@@ -42,8 +42,8 @@ class RBM(BaseLayerPair):
 				self.h.sample(self.W,self.h_bias,v_sample)
 		v_activation_score, v_activation_probs, v_sample = \
 				self.v.sample(self.W.T,self.v_bias,h_sample)
-		return v_activation_score,v_activation_probs,v_sample,\
-			   h_activation_score,h_activation_probs,h_sample
+		return h_activation_score,h_activation_probs,h_sample,\
+			   v_activation_score,v_activation_probs,v_sample
 
 	def free_energy(self, v_sample):
 		h_activation_score = T.dot(v_sample,self.W) + self.h_bias
