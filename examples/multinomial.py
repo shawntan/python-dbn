@@ -7,18 +7,22 @@ theano_rng = RandomStreams(np.random.RandomState(1234).randint(2**30))
 
 
 
-def sample_k_times(prob):
-	sample = theano_rng.multinomial(n=1,pvals=prob)
+def sample_k_times(prob,d):
+	sample = theano_rng.multinomial(n=d[0],pvals=prob)
 	return sample
 
 probs = T.matrix('probs')
-# Generate the components of the polynomial
+D     = T.matrix('D')
 samples, updates = theano.scan(
 		fn=sample_k_times,
-		sequences=probs
+		sequences=[probs,D]
 	)
-# Sum them up
-# Compile a function
-smpl = theano.function([probs],samples)
+smpl = theano.function([probs,D],samples,updates=updates)
 for _ in xrange(10):
-	print smpl(np.array([[0.5,0.5],[0.8,0.2]], dtype=np.float32))
+	print smpl(
+			np.array([
+				[0.5,0.3,0.2],
+				[0.7,0.1,0.2],
+				[0.3,0.3,0.4]
+			],dtype=np.float32),
+			np.array([[3],[2],[1]],dtype=np.float32))

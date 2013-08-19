@@ -16,6 +16,7 @@ class BaseLayerPair(object):
 		self.max_epochs = max_epochs 
 		self.lambda_2   = lambda_2
 
+
 		self.W       = U.create_shared(U.initial_weights(inputs,outputs))
 		self.W_delta = U.create_shared(np.zeros((inputs,outputs)))
 
