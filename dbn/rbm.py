@@ -31,17 +31,17 @@ class RBM(BaseLayerPair):
 
 	def gibbs_hvh(self,h_sample):
 		v_activation_score = T.dot(h_sample,self.W.T) + self.v_bias
-		v_activation_probs, v_sample = self.v.sample(v_activation_score)
+		v_activation_probs, v_sample, v_updates = self.v.sample(v_activation_score)
 		h_activation_score = T.dot(v_sample,self.W)   + self.h_bias
-		h_activation_probs, h_sample = self.h.sample(h_activation_score)
+		h_activation_probs, h_sample, h_updates  = self.h.sample(h_activation_score)
 		return v_activation_score,v_activation_probs,v_sample,\
 			   h_activation_score,h_activation_probs,h_sample
 
 	def gibbs_vhv(self,v_sample):
 		h_activation_score = T.dot(v_sample,self.W)   + self.h_bias
-		h_activation_probs, h_sample = self.h.sample(h_activation_score)
+		h_activation_probs, h_sample, h_updates = self.h.sample(h_activation_score)
 		v_activation_score = T.dot(h_sample,self.W.T) + self.v_bias
-		v_activation_probs, v_sample = self.v.sample(v_activation_score)
+		v_activation_probs, v_sample, v_updates  = self.v.sample(v_activation_score)
 		return h_activation_score,h_activation_probs,h_sample,\
 			   v_activation_score,v_activation_probs,v_sample
 
@@ -68,7 +68,8 @@ class RBM(BaseLayerPair):
 
 	def cost_updates(self,lr,data,k=1):
 		ph_activation_scores = T.dot(data,self.W) + self.h_bias
-		ph_activation_probs, ph_samples = self.h.sample(ph_activation_scores)
+		ph_activation_probs, ph_samples, ph_updates  = self.h.sample(ph_activation_scores)
+
 		chain_start = ph_samples
 
 		[nv_activation_scores,nv_activation_probs,nv_samples,\
@@ -92,7 +93,7 @@ class RBM(BaseLayerPair):
 		   ] + [
 				( prev_chg, alpha * prev_chg + gparam * lr )
 				for prev_chg,gparam in zip(self.deltas,gparams)
-		   ]
+		   ]# + ph_updates + nv_updates + nh_updates
 
 		monitoring_cost = self.reconstruction_cost(updates,nv_activation_scores[-1],data)
 
@@ -123,7 +124,7 @@ class RBM(BaseLayerPair):
 
 if __name__ == "__main__":
 	from layers import *
-	r = RBM(Sigmoid(6),Sigmoid(3))
+	r = RBM(ReplicatedSoftmax(6),Sigmoid(3))
 	training_data = np.array([	
 		[1,1,1,0,0,0],
 		[1,0,1,0,0,0],

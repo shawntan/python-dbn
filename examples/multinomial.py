@@ -8,21 +8,23 @@ theano_rng = RandomStreams(np.random.RandomState(1234).randint(2**30))
 
 
 def sample_k_times(prob,d):
-	sample = theano_rng.multinomial(n=d[0],pvals=prob)
+	sample = theano_rng.multinomial(n=d,pvals=prob)
 	return sample
 
-probs = T.matrix('probs')
-D     = T.matrix('D')
+counts = T.matrix('counts')
+D = T.sum(counts,axis=1)
+probs = counts / D
+#D = D.reshape((1,)+D.shape)
 samples, updates = theano.scan(
 		fn=sample_k_times,
 		sequences=[probs,D]
 	)
-smpl = theano.function([probs,D],samples,updates=updates)
+print updates
+smpl = theano.function([counts],samples,updates=updates)
 for _ in xrange(10):
 	print smpl(
 			np.array([
-				[0.5,0.3,0.2],
-				[0.7,0.1,0.2],
-				[0.3,0.3,0.4]
-			],dtype=np.float32),
-			np.array([[3],[2],[1]],dtype=np.float32))
+				[5,3,2],
+				[7,1,2],
+				[3,3,4]
+			],dtype=np.float32))
