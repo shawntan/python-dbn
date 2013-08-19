@@ -14,29 +14,24 @@ theano_rng = utils.theano_rng
 class Linear(object):
 	def __init__(self,size):
 		self.size = size
-	def activation_probability(self,W,bias,inputs):
-		activation_score = T.dot(inputs,W) + bias
-		return activation_score,activation_score
-	def sample(self,W,bias,inputs):
-		activation_score,activation_probs = \
-				self.activation_probability(W,bias,inputs)
+	def activation_probability(self,activation_score):
+		#activation_score = T.dot(inputs,W) + bias
+		return activation_score
+	def sample(self,activation_score):
+		activation_probs = self.activation_probability(activation_score)
 		return \
-			activation_score,\
 			activation_probs,\
 			activation_probs
 
 class Sigmoid(Linear):
 	activation = T.nnet.sigmoid
-	def activation_probability(self,W,bias,inputs):
-		activation_score = T.dot(inputs,W) + bias
+	def activation_probability(self,activation_score):
 		activation_probs = self.activation(activation_score)
-		return activation_score, activation_probs
+		return activation_probs
 
-	def sample(self,W,bias,inputs):
-		activation_score,activation_probs = \
-				self.activation_probability(W,bias,inputs)
+	def sample(self,activation_score):
+		activation_probs = self.activation_probability(activation_score)
 		return \
-			activation_score,\
 			activation_probs,\
 			theano_rng.binomial(
 				size  = activation_probs.shape,
@@ -47,20 +42,16 @@ class Sigmoid(Linear):
 
 class Softmax(Sigmoid):
 	activation = T.nnet.softmax
-	def sample(self,W,bias,inputs):
-		activation_score,activation_probs = \
-				self.activation_probability(W,bias,inputs)
+	def sample(self,activation_score):
+		activation_probs = self.activation_probability(activation_score)
 		return \
-			activation_score,\
 			activation_probs,\
 			activation_probs
 
 class OneHotSoftmax(Softmax):
-	def sample(self,W,bias,inputs):
-		activation_score,activation_probs = \
-				self.activation_probability(W,bias,inputs)
+	def sample(self,activation_score):
+		activation_probs = self.activation_probability(activation_score)
 		return \
-			activation_score,\
 			activation_probs,\
 			theano_rng.multinomial(
 				n     = 1,

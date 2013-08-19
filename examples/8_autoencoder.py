@@ -14,5 +14,5 @@ if __name__ == '__main__':
 				Sigmoid(3)
 			],8,max_epochs=1000)
 	net.fit(data[:,:-1],data[:,-1])
-	print net.predict(np.eye(8))
+	print net.predict(np.eye(8,dtype=np.float32))
 
