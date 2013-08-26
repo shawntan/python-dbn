@@ -14,6 +14,7 @@ theano_rng = utils.theano_rng
 class Linear(object):
 	def __init__(self,size):
 		self.size = size
+		self.layers = [self]
 	def mean(self,activation_score):
 		return activation_score
 
@@ -23,6 +24,16 @@ class Linear(object):
 			activation_probs,\
 			activation_probs,\
 			NO_UPDATES
+	def __repr__(self):
+		return "%s(%d)"%(self.__class__.__name__,self.size)
+	def __add__(self,other):
+		return MultiInput(self.layers + other.layers)
+	def __mul__(self,other):
+		other = int(other)
+		return MultiInput(self.layers * other)
+	def __rmul__(self,other):
+		self.__mul__(other)
+
 
 class Sigmoid(Linear):
 	activation = T.nnet.sigmoid
@@ -84,3 +95,9 @@ class ReplicatedSoftmax(Softmax):
 			samples,\
 			updates
 
+class MultiInput(Linear):
+	def __init__(self,layers):
+		self.layers = layers
+	
+	def __repr__(self):
+		return ' + '.join(repr(l) for l in self.layers)
