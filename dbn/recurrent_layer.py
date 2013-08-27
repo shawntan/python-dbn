@@ -10,6 +10,8 @@ class Recurrent(Sigmoid):
 	def __init__(self,size):
 		super(Recurrent,self).__init__(size)
 		self.W = U.create_shared(U.initial_weights(size,size))
+		self.h0 = U.create_shared(np.zeros((size,)))
+		self.updates = [self.W]
 	def mean(self,activation_score):
 		"""
 		In using this class, the assumption is made
@@ -22,7 +24,7 @@ class Recurrent(Sigmoid):
 		activation_probs,_ = theano.scan(
 				step,
 				sequences     = activation_score,
-				outputs_info  = T.zeros_like(activation_score),
+				outputs_info  = self.h0,
 				non_sequences = self.W
 			)
 		return activation_probs
