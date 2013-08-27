@@ -14,8 +14,8 @@ class Connections(object):
 		self.ins     = layers_in
 		self.out     = layer_out
 		self.Ws      = [ U.create_shared(U.initial_weights(inp.size,self.out.size))
-							for inp in self.layers ]
-		self.bias    = U.create_shared(np.zeros(outputs))
+							for inp in self.ins.layers ]
+		self.bias    = U.create_shared(np.zeros(self.out.size))
 		self.updates = self.Ws + [self.bias]
 	
 	def transform(self,inputs):
@@ -23,6 +23,7 @@ class Connections(object):
 				sum(T.dot(v,W) for v,W in zip(inputs,self.Ws)) +\
 				self.bias
 			)
-	
 
-
+if __name__ == "__main__":
+	from layers import *
+	con = Connections(Softmax(10)*10,Sigmoid(2))
