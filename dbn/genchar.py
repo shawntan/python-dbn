@@ -62,6 +62,7 @@ if __name__ == '__main__':
 			W_hidden_to_predict,
 			b_predict
 		]
+
 	print "Constructing graph..."
 	hidden_inputs  = make_hidden_inputs(X,Ws_char_to_hidden,b_hidden)
 	hidden_outputs = make_hidden_outputs(hidden_inputs,W_hidden_to_hidden)
